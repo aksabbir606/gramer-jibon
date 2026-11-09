@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>গ্রামের জীবন (Gramer Jibon) - সম্পূর্ণ সাউন্ড এফেক্টসসহ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      touch-action: none;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Hind Siliguri', sans-serif;
+      background-color: #030811;
+    }
+    #game-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      z-index: 1;
+      cursor: grab;
+    }
+    #game-canvas:active {
+      cursor: grabbing;
+    }
+    .hud-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .hud-interactive {
+      pointer-events: auto;
+    }
+    .modal-backdrop {
+      background: rgba(3, 8, 17, 0.94);
+      backdrop-filter: blur(12px);
+    }
+    .mobile-btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #059669;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-100">
+
+  <!-- 3D Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Start Screen Modal -->
+  <div id="start-menu-modal" class="hud-layer flex items-center justify-center p-4">
+    <div class="hud-interactive bg-slate-900/95 border-2 border-emerald-500/60 p-6 sm:p-8 rounded-3xl max-w-md w-full text-center shadow-2xl backdrop-blur-md">
+      <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 bg-gradient-to-tr from-emerald-800 to-teal-600 rounded-3xl flex items-center justify-center text-4xl sm:text-5xl shadow-inner border border-emerald-400/50">
+        🔊
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-emerald-300 mb-1">গ্রামের জীবন</h1>
+      <p class="text-xs text-emerald-100/75 mb-5 leading-relaxed">পাখির ডাক, বৃষ্টি, নদীর কলতান ও সম্পূর্ণ গ্রামীণ সাউন্ড এফেক্টস</p>
+      
+      <div class="space-y-2.5">
+        <button id="btn-continue-game" class="mobile-btn w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 font-bold rounded-2xl shadow-lg active:scale-95 text-white flex items-center justify-center gap-2 hidden">
+          <span>🔄 আগের জীবন লোড করুন</span>
+        </button>
+        <button id="btn-new-game" class="mobile-btn w-full py-3.5 bg-slate-800 hover:bg-slate-700 border border-emerald-500/40 font-bold rounded-2xl shadow-lg active:scale-95 text-emerald-300 flex items-center justify-center gap-2">
+          <span>✨ সাউন্ডসহ নতুন জীবন শুরু করুন</span>
+        </button>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex justify-between">
+        <span>সাউন্ড ইঞ্জিন সক্রিয়</span>
+        <span class="text-emerald-400">অটো-সেভ প্রস্তুত</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Primary HUD -->
+  <div id="main-hud" class="hud-layer flex flex-col justify-between p-2 sm:p-4 hidden">
+    
+    <!-- Top Bar -->
+    <div class="flex flex-wrap items-start justify-between gap-2">
+      
+      <!-- Character Info -->
+      <div class="hud-interactive bg-slate-900/90 border border-emerald-500/30 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl shadow-xl flex items-center gap-2.5 sm:gap-3">
+        <div id="avatar-container" class="w-10 h-10 sm:w-11 sm:h-11 bg-gradient-to-tr from-emerald-800 to-teal-600 rounded-xl flex items-center justify-center text-xl sm:text-2xl shadow-inner border border-emerald-400/40">
+          👶
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="font-bold text-emerald-300 text-sm sm:text-base">সোহাগ</span>
+            <span id="player-stage-tag" class="text-[10px] sm:text-xs px-2 py-0.5 bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-full font-semibold">নবজাতক</span>
+            <span id="marital-status-tag" class="text-[10px] sm:text-xs px-1.5 py-0.5 bg-purple-600/30 border border-purple-500/40 text-purple-300 rounded-full font-semibold hidden">বিবাহিত 💍</span>
+          </div>
+          <div class="text-[11px] sm:text-xs text-slate-300 flex items-center gap-1.5 mt-0.5">
+            <span>বয়স: <strong id="player-age-text" class="text-emerald-400">০ বছর</strong></span>
+            <span>•</span>
+            <span id="player-location-text" class="text-emerald-400 font-semibold truncate max-w-[120px] sm:max-w-none">শান্তিপুর গ্রাম</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vital Meters -->
+      <div class="hud-interactive bg-slate-900/90 border border-slate-700/60 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl shadow-xl flex flex-col gap-1 w-40 sm:w-56">
+        <div class="flex items-center text-[10px] sm:text-xs">
+          <span class="w-14 font-semibold text-rose-400">❤️ স্বাস্থ্য</span>
+          <div class="flex-1 bg-slate-800 h-2 sm:h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div id="bar-health" class="bg-gradient-to-r from-rose-600 to-rose-400 h-full rounded-full transition-all duration-300" style="width: 100%;"></div>
+          </div>
+          <span id="val-health" class="w-7 text-right font-mono text-slate-300">১০০</span>
+        </div>
+        <div class="flex items-center text-[10px] sm:text-xs">
+          <span class="w-14 font-semibold text-amber-400">⚡ শক্তি</span>
+          <div class="flex-1 bg-slate-800 h-2 sm:h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div id="bar-energy" class="bg-gradient-to-r from-amber-600 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 85%;"></div>
+          </div>
+          <span id="val-energy" class="w-7 text-right font-mono text-slate-300">৮৫</span>
+        </div>
+        <div class="flex items-center text-[10px] sm:text-xs">
+          <span class="w-14 font-semibold text-orange-400">🍲 ক্ষুধা</span>
+          <div class="flex-1 bg-slate-800 h-2 sm:h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-700">
+            <div id="bar-hunger" class="bg-gradient-to-r from-orange-600 to-orange-400 h-full rounded-full transition-all duration-300" style="width: 75%;"></div>
+          </div>
+          <span id="val-hunger" class="w-7 text-right font-mono text-slate-300">৭৫</span>
+        </div>
+      </div>
+
+      <!-- Time, Sound, Weather & Money -->
+      <div class="hud-interactive bg-slate-900/90 border border-slate-700/60 backdrop-blur-md p-2 sm:p-2.5 rounded-2xl shadow-xl flex items-center gap-2.5">
+        
+        <!-- Live Time & Weather Badge -->
+        <div class="cursor-pointer" id="weather-toggle-btn" title="ক্লিক করে আবহাওয়া পরিবর্তন করুন">
+          <div id="hud-time-display" class="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1">
+            <span id="time-icon">☀️</span> <span id="time-text">সকাল ০৭:১৫</span>
+          </div>
+          <div id="hud-weather-display" class="text-[10px] sm:text-[11px] text-sky-300 flex items-center gap-1 mt-0.5 font-medium">
+            <span id="weather-icon">🌤️</span> <span id="weather-text">রোদেলা দিন</span>
+          </div>
+        </div>
+
+        <div class="h-8 w-[1px] bg-slate-700"></div>
+
+        <!-- Money Badge -->
+        <div class="flex items-center gap-1.5">
+          <div class="w-7 h-7 sm:w-8 sm:h-8 bg-emerald-900/60 rounded-lg flex items-center justify-center text-emerald-400 font-bold border border-emerald-500/40 text-sm">৳</div>
+          <div>
+            <div class="text-[9px] text-slate-400">টাকা</div>
+            <div id="hud-money" class="text-xs sm:text-sm font-bold text-emerald-300 font-mono">৳ ২৫০</div>
+          </div>
+        </div>
+
+        <!-- Audio Mute/Unmute Toggle Button -->
+        <button id="btn-toggle-sound" class="mobile-btn px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-emerald-300 flex items-center gap-1" title="সাউন্ড চালু/বন্ধ করুন">
+          <span id="sound-icon">🔊</span>
+        </button>
+
+        <button id="btn-save-manual" class="mobile-btn px-2 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs text-emerald-300 flex items-center gap-1">
+          <span>💾</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification-box" class="self-center bg-slate-900/95 border border-emerald-500/50 px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-semibold text-emerald-200 shadow-2xl backdrop-blur-md opacity-0 transition-opacity duration-300 pointer-events-none text-center max-w-[90vw]">
+      নোটিফিকেশন
+    </div>
+
+    <!-- Proximity Prompt -->
+    <div id="action-prompt" class="hud-interactive self-center bg-emerald-950/95 border-2 border-emerald-400 px-4 sm:px-6 py-2.5 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3 transform translate-y-6 opacity-0 pointer-events-none transition-all duration-300">
+      <div class="hidden sm:flex w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 font-black items-center justify-center text-xs shadow">F</div>
+      <div id="action-text" class="text-xs sm:text-sm font-bold text-emerald-200">ইন্টারঅ্যাকশন</div>
+      <button id="btn-prompt-interact" class="mobile-btn px-3 py-1 bg-emerald-600 active:bg-emerald-500 text-white font-bold rounded-lg text-xs shadow">চাপুন</button>
+    </div>
+
+    <!-- Bottom Controls Area -->
+    <div class="flex items-end justify-between w-full">
+      
+      <!-- Virtual Joystick Zone -->
+      <div class="hud-interactive relative w-36 h-36 select-none" id="joystick-zone">
+        <div id="joystick-base" class="w-32 h-32 rounded-full bg-slate-900/60 border-2 border-emerald-500/40 backdrop-blur-md relative flex items-center justify-center shadow-2xl">
+          <div id="joystick-stick" class="w-14 h-14 rounded-full bg-emerald-500/80 shadow-lg border-2 border-emerald-300 absolute"></div>
+        </div>
+      </div>
+
+      <!-- Desktop Guidance Hint -->
+      <div class="hidden md:flex hud-interactive bg-slate-900/80 border border-slate-800 backdrop-blur-sm px-4 py-2 rounded-xl text-xs text-slate-400 gap-3">
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-200">W/S</kbd> সামনে/পেছনে</span>
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-200">Space</kbd> লাফ</span>
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-200">Shift</kbd> দৌড়</span>
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-200">Q / E</kbd> ক্যামেরা</span>
+        <span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 text-slate-200">F</kbd> কাজ/মাছ ধরা</span>
+      </div>
+
+      <!-- Mobile Right Controls -->
+      <div class="hud-interactive flex flex-col items-end gap-2.5">
+        
+        <div class="flex items-center gap-2">
+          <!-- Sprint Button -->
+          <button id="btn-mobile-sprint" class="mobile-btn w-12 h-12 sm:hidden rounded-2xl bg-slate-900/90 border-2 border-amber-500/50 flex flex-col items-center justify-center active:scale-90 text-amber-300 shadow-xl">
+            <span class="text-lg">⚡</span>
+            <span id="sprint-label" class="text-[8px] font-bold">দৌড়</span>
+          </button>
+          
+          <!-- Jump Button -->
+          <button id="btn-mobile-jump" class="mobile-btn w-13 h-13 sm:hidden p-3 rounded-2xl bg-emerald-600 active:bg-emerald-500 border-2 border-emerald-300 flex flex-col items-center justify-center text-white active:scale-90 shadow-2xl">
+            <span class="text-xl font-black">⬆</span>
+            <span class="text-[8px] font-bold">লাফ</span>
+          </button>
+
+          <!-- Action Button -->
+          <button id="btn-mobile-action" class="mobile-btn w-13 h-13 sm:hidden p-3 rounded-2xl bg-sky-600 active:bg-sky-500 border-2 border-sky-300 flex flex-col items-center justify-center text-white active:scale-90 shadow-2xl">
+            <span class="text-xl font-black">🎯</span>
+            <span class="text-[8px] font-bold">কাজ</span>
+          </button>
+        </div>
+
+        <!-- Menu Tabs -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <button id="btn-open-career" class="mobile-btn w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-900/90 border border-sky-500/40 flex flex-col items-center justify-center text-base text-sky-300 active:scale-95 shadow">
+            <span>🎓</span>
+          </button>
+          <button id="btn-open-relations" class="mobile-btn w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-900/90 border border-rose-500/40 flex flex-col items-center justify-center text-base text-rose-300 active:scale-95 shadow">
+            <span>❤️</span>
+          </button>
+          <button id="btn-open-inventory" class="mobile-btn w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex flex-col items-center justify-center text-base text-emerald-300 active:scale-95 shadow">
+            <span>🎒</span>
+          </button>
+          <button id="btn-rest-home" class="mobile-btn w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-900/90 border border-indigo-500/40 flex flex-col items-center justify-center text-base text-indigo-300 active:scale-95 shadow">
+            <span>🛏️</span>
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Fishing Progress Modal -->
+  <div id="fishing-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-sky-500/70 p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+      <div class="text-4xl animate-bounce mb-3">🎣</div>
+      <h3 class="text-lg font-bold text-sky-300 mb-1">নদীতে বড়শি ফেলা হয়েছে...</h3>
+      <p class="text-xs text-slate-400 mb-4">ধৈর্য ধরুন, মাছ টোপ গিলছে!</p>
+      <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
+        <div id="fishing-progress-bar" class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all duration-300" style="width: 0%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dialogue Modal -->
+  <div id="dialogue-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-emerald-500/60 w-full max-w-xl rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div id="npc-avatar-box" class="w-12 h-12 rounded-2xl bg-emerald-950 border border-emerald-400 flex items-center justify-center text-2xl shadow">👵</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 id="npc-name-title" class="text-lg font-bold text-emerald-300">মা রহিমা</h3>
+              <span id="npc-role-badge" class="text-[10px] px-2 py-0.5 bg-emerald-900/60 text-emerald-300 rounded-full border border-emerald-600/40">মা</span>
+            </div>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-[11px] text-slate-400">সম্পর্ক:</span>
+              <div class="w-20 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                <div id="npc-relation-bar" class="h-full bg-rose-500" style="width: 80%;"></div>
+              </div>
+              <span id="npc-relation-val" class="text-[11px] font-bold text-rose-400">৮০%</span>
+            </div>
+          </div>
+        </div>
+        <button id="btn-close-dialogue" class="mobile-btn w-8 h-8 rounded-xl bg-slate-800 hover:bg-rose-900 text-slate-400 hover:text-white flex items-center justify-center font-bold">✕</button>
+      </div>
+      <div class="py-4">
+        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80 text-sm leading-relaxed text-slate-200" id="npc-speech-bubble">
+          "বাবা, দিনটা কেমন কাটল তোর?"
+        </div>
+      </div>
+      <div class="text-xs font-semibold text-slate-400 mb-2">আপনার উত্তর বা সিদ্ধান্ত:</div>
+      <div id="dialogue-choices" class="flex flex-col gap-2 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Career & Education Modal -->
+  <div id="career-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-sky-500/60 w-full max-w-2xl rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[88vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="text-2xl sm:text-3xl">🏛️</div>
+          <div>
+            <h3 class="text-lg font-bold text-sky-300">শিক্ষা, পেশা ও ব্যবসা</h3>
+            <p class="text-[11px] text-slate-400">মেধার বিকাশ ও স্থায়ী আয়ের ব্যবস্থা</p>
+          </div>
+        </div>
+        <button id="btn-close-career" class="mobile-btn w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center font-bold">✕</button>
+      </div>
+      <div class="flex border-b border-slate-800 pt-2 gap-3 text-xs sm:text-sm font-semibold">
+        <button id="tab-btn-edu" class="pb-2 border-b-2 border-sky-400 text-sky-300 font-bold">📚 শিক্ষা</button>
+        <button id="tab-btn-jobs" class="pb-2 border-b-2 border-transparent text-slate-400">💼 চাকরি</button>
+        <button id="tab-btn-biz" class="pb-2 border-b-2 border-transparent text-slate-400">🏪 ব্যবসা</button>
+      </div>
+      <div class="py-3 overflow-y-auto flex-1 space-y-2.5" id="career-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Inventory Modal -->
+  <div id="inventory-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-emerald-500/60 w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="text-2xl sm:text-3xl">🎒</div>
+          <div>
+            <h3 class="text-lg font-bold text-emerald-400">ব্যক্তিগত থলি</h3>
+            <p class="text-[11px] text-slate-400">মাছ, ফসল, খাবার ও মালামাল</p>
+          </div>
+        </div>
+        <button id="btn-close-inv" class="mobile-btn w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+      <div class="py-2 flex items-center justify-between text-xs text-slate-300">
+        <span>স্থান: <strong id="inv-count" class="text-emerald-400 font-bold">০ / ১২</strong></span>
+        <span class="font-mono text-emerald-300 font-bold" id="inv-money-text">৳ ২৫০</span>
+      </div>
+      <div id="inv-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 py-2 overflow-y-auto flex-1"></div>
+      <div id="inv-details-panel" class="mt-3 p-3 bg-slate-950/70 rounded-2xl border border-slate-800 flex items-center justify-between hidden">
+        <div>
+          <h4 id="inv-selected-name" class="font-bold text-xs text-emerald-300">নাম</h4>
+          <p id="inv-selected-desc" class="text-[10px] text-slate-400">বিবরণ</p>
+        </div>
+        <button id="btn-use-item" class="mobile-btn px-3 py-1.5 bg-emerald-600 active:bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs">ব্যবহার/বিক্রি</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Relationship Modal -->
+  <div id="relationship-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-rose-500/50 w-full max-w-lg rounded-3xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="text-2xl sm:text-3xl">📜</div>
+          <div>
+            <h3 class="text-lg font-bold text-rose-400">সামাজিক সম্পর্ক খাতা</h3>
+            <p class="text-[11px] text-slate-400">গ্রামের মানুষ ও প্রতিবেশীদের সাথে সম্পর্ক</p>
+          </div>
+        </div>
+        <button id="btn-close-rel" class="mobile-btn w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white font-bold">✕</button>
+      </div>
+      <div id="relationship-list" class="divide-y divide-slate-800 my-3 overflow-y-auto flex-1"></div>
+    </div>
+  </div>
+
+  <!-- Save / Settings Modal -->
+  <div id="save-menu-modal" class="hud-layer modal-backdrop flex items-center justify-center p-4 hidden">
+    <div class="hud-interactive bg-slate-900 border-2 border-emerald-500/60 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-lg font-bold text-emerald-300">গেম সংরক্ষণ</h3>
+        <button id="btn-close-save-menu" class="mobile-btn w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold">✕</button>
+      </div>
+      <div class="space-y-2.5 my-4">
+        <button id="btn-do-save" class="mobile-btn w-full py-3 bg-emerald-600 active:bg-emerald-500 rounded-xl font-bold text-white text-sm">
+          এখনই সেভ করুন 💾
+        </button>
+        <button id="btn-reset-data" class="mobile-btn w-full py-3 bg-rose-900/60 active:bg-rose-800/80 border border-rose-500/50 rounded-xl font-bold text-rose-300 text-sm">
+          নতুন জীবন শুরু করুন ⚠️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. GAME STATE DEFINITION
+       ========================================================================== */
+    const DEFAULT_GAME_STATE = {
+      player: {
+        name: "সোহাগ",
+        ageInMonths: 0,
+        currentStageIndex: 0,
+        isMarried: false,
+        spouseName: null,
+        health: 100,
+        energy: 85,
+        hunger: 75,
+        happiness: 90,
+        intellect: 10,
+        money: 250,
+        educationLevel: 0,
+        educationDegrees: ["অশিক্ষিত", "প্রাথমিক পাশ (পিএসসি)", "এসএসসি (বিজ্ঞান)", "এইচএসসি (উচ্চ মাধ্যমিক)", "স্নাতক / বিএসসি (বিশ্ববিদ্যালয়)"],
+        job: null,
+        business: null,
+        position: { x: 0, y: 0, z: 0 },
+        inventory: [
+          { id: "puffed_rice", name: "মুড়ি ও গুড়", icon: "🍿", type: "food", hunger: 20, energy: 10, count: 2, desc: "মচমচে খাঁটি মুড়ি ও আখের গুড়।" },
+          { id: "fishing_rod", name: "বাঁশের ছিপ", icon: "🎣", type: "tool", count: 1, desc: "নদীতে দেশি মাছ ধরার ছিপ।" },
+          { id: "fresh_flower", name: "কদম ও বেলি ফুল", icon: "🌸", type: "gift", count: 1, desc: "গাছ থেকে তোলা সুগন্ধি মিষ্টি ফুল।" }
+        ],
+        stages: [
+          { name: "নবজাতক", minAge: 0, maxAge: 2, scale: 0.45, speed: 4.5, icon: "👶" },
+          { name: "শৈশব", minAge: 3, maxAge: 12, scale: 0.65, speed: 7.5, icon: "🧒" },
+          { name: "কৈশোর", minAge: 13, maxAge: 18, scale: 0.85, speed: 9.0, icon: "🧑" },
+          { name: "তারুণ্য", minAge: 19, maxAge: 30, scale: 1.0, speed: 10.0, icon: "👨" },
+          { name: "প্রৌঢ়", minAge: 31, maxAge: 50, scale: 1.0, speed: 9.5, icon: "🧔" },
+          { name: "বার্ধক্য", minAge: 51, maxAge: 65, scale: 0.95, speed: 7.0, icon: "🧓" },
+          { name: "বৃদ্ধ", minAge: 66, maxAge: 100, scale: 0.9, speed: 5.5, icon: "👴" }
+        ]
+      },
+      time: {
+        totalMinutes: 7 * 60 + 15,
+        timeSpeed: 10,
+        weatherIndex: 0,
+        weathers: [
+          { id: "sunny", name: "রোদেলা দিন", icon: "☀️", fogNear: 60, fogFar: 340 },
+          { id: "cloudy", name: "মেঘলা আকাশ", icon: "☁️", fogNear: 40, fogFar: 220 },
+          { id: "rainy", name: "ঝুম বৃষ্টি", icon: "🌧️", fogNear: 20, fogFar: 140 },
+          { id: "foggy", name: "ঘন কুয়াশা", icon: "🌫️", fogNear: 5, fogFar: 65 }
+        ]
+      },
+      activeCareerTab: "edu"
+    };
+
+    let GAME = JSON.parse(JSON.stringify(DEFAULT_GAME_STATE));
+    const SAVE_KEY = "gramer_jibon_master_save";
+    let isFishing = false;
+    let isMobileSprint = false;
+
+    /* ==========================================================================
+       2. REAL-TIME PROCEDURAL SOUND SYNTHESIZER ENGINE (উন্নত সাউন্ড এফেক্টস)
+       ========================================================================== */
+    class VillageAudioSynthesizer {
+      constructor() {
+        this.ctx = null;
+        this.isReady = false;
+        this.isMuted = false;
+        this.rainGain = null;
+        this.ambientGain = null;
+        this.lastStepTime = 0;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+        this.isReady = true;
+        this.playBackgroundAmbience();
+        this.initRainAudio();
+      }
+
+      // গ্রামীণ মৃদু বাতাস ও পরিবেশ
+      playBackgroundAmbience() {
+        if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+
+        this.ambientGain = this.ctx.createGain();
+        this.ambientGain.gain.setValueAtTime(this.isMuted ? 0 : 0.03, this.ctx.currentTime);
+
+        whiteNoise.connect(filter);
+        filter.connect(this.ambientGain);
+        this.ambientGain.connect(this.ctx.destination);
+        whiteNoise.start(0);
+
+        // মাঝে মাঝে পাখির কিচিরমিচির
+        setInterval(() => {
+          if (!this.isMuted && this.isReady && Math.random() > 0.45) {
+            this.playBirdChirp();
+          }
+        }, 6000);
+      }
+
+      // বৃষ্টির নিজস্ব সাউন্ড এফেক্ট
+      initRainAudio() {
+        if (!this.ctx) return;
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const rainNoise = this.ctx.createBufferSource();
+        rainNoise.buffer = noiseBuffer;
+        rainNoise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 850;
+
+        this.rainGain = this.ctx.createGain();
+        this.rainGain.gain.setValueAtTime(0, this.ctx.currentTime);
+
+        rainNoise.connect(filter);
+        filter.connect(this.rainGain);
+        this.rainGain.connect(this.ctx.destination);
+        rainNoise.start(0);
+      }
+
+      setRainSound(active) {
+        if (!this.rainGain || !this.ctx) return;
+        const target = (active && !this.isMuted) ? 0.06 : 0;
+        this.rainGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.5);
+      }
+
+      // পাখির মিষ্টি ডাক
+      playBirdChirp() {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const now = this.ctx.currentTime;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1800, now);
+        osc.frequency.exponentialRampToValueAtTime(2600, now + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(1900, now + 0.2);
+
+        gain.gain.setValueAtTime(0.02, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      // মেঠোপথে হাঁটার শব্দ (Footstep)
+      playFootstep() {
+        if (!this.ctx || this.isMuted) return;
+        const now = performance.now();
+        if (now - this.lastStepTime < 320) return; // স্টেপ লিমিট
+        this.lastStepTime = now;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const ctxTime = this.ctx.currentTime;
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(120, ctxTime);
+        osc.frequency.exponentialRampToValueAtTime(40, ctxTime + 0.06);
+
+        gain.gain.setValueAtTime(0.05, ctxTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctxTime + 0.07);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(ctxTime);
+        osc.stop(ctxTime + 0.07);
+      }
+
+      playTone(freq, duration = 0.2, type = "sine", vol = 0.12) {
+        if (!this.ctx || this.isMuted) return;
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+      }
+
+      playCoins() {
+        if (!this.ctx || this.isMuted) return;
+        this.playTone(987, 0.1, "triangle", 0.14);
+        setTimeout(() => this.playTone(1318, 0.18, "triangle", 0.14), 70);
+      }
+
+      playEat() {
+        if (!this.ctx || this.isMuted) return;
+        this.playTone(320, 0.08, "sine", 0.1);
+        setTimeout(() => this.playTone(440, 0.12, "sine", 0.1), 80);
+      }
+
+      playJump() {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const now = this.ctx.currentTime;
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(440, now + 0.15);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      playSplash() {
+        if (!this.ctx || this.isMuted) return;
+        this.playTone(180, 0.3, "sine", 0.15);
+        setTimeout(() => this.playTone(240, 0.2, "triangle", 0.12), 100);
+      }
+
+      toggleMute() {
+        this.isMuted = !this.isMuted;
+        if (this.ambientGain) {
+          this.ambientGain.gain.setValueAtTime(this.isMuted ? 0 : 0.03, this.ctx.currentTime);
+        }
+        if (this.rainGain && rainParticles.visible) {
+          this.rainGain.gain.setValueAtTime(this.isMuted ? 0 : 0.06, this.ctx.currentTime);
+        }
+        return this.isMuted;
+      }
+    }
+
+    const soundEngine = new VillageAudioSynthesizer();
+
+    // Mute Button Handler
+    document.getElementById('btn-toggle-sound')?.addEventListener('click', () => {
+      soundEngine.init();
+      const isMuted = soundEngine.toggleMute();
+      document.getElementById('sound-icon').innerText = isMuted ? "🔇" : "🔊";
+      showNotification(isMuted ? "সাউন্ড মিউট করা হয়েছে 🔇" : "সাউন্ড চালু করা হয়েছে 🔊");
+    });
+
+    // যেকোনো টাচ বা ক্লিকে অডিও আনলক নিশ্চিত করা
+    window.addEventListener('click', () => {
+      if (soundEngine.ctx && soundEngine.ctx.state === 'suspended') {
+        soundEngine.ctx.resume();
+      }
+    }, { once: true });
+
+    /* ==========================================================================
+       3. THREE.JS 3D SCENE & ENVIRONMENT
+       ========================================================================== */
+    const canvas = document.getElementById('game-canvas');
+    let width = window.innerWidth || 800;
+    let height = window.innerHeight || 600;
+
+    const renderer = new THREE.WebGLRenderer({ 
+      canvas: canvas, 
+      antialias: true, 
+      powerPreference: "high-performance",
+      alpha: false 
+    });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x7ec0ee);
+    scene.fog = new THREE.Fog(0x7ec0ee, 60, 340);
+
+    const camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xdff1ff, 0x4d6332, 0.6);
+    scene.add(hemiLight);
+
+    const sunLight = new THREE.DirectionalLight(0xfffae6, 1.2);
+    sunLight.position.set(50, 100, 50);
+    scene.add(sunLight);
+
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // Large World Ground
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(550, 550),
+      new THREE.MeshLambertMaterial({ color: 0x48752c })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    worldGroup.add(ground);
+
+    // Earthen Roads
+    function createRoad(w, l, x, z, rotZ = 0) {
+      const r = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, l),
+        new THREE.MeshLambertMaterial({ color: 0xbfa06a })
+      );
+      r.rotation.x = -Math.PI / 2;
+      r.rotation.z = rotZ;
+      r.position.set(x, 0.04, z);
+      worldGroup.add(r);
+    }
+    createRoad(8, 240, 0, 0);
+    createRoad(8, 200, 0, 15, Math.PI / 2);
+    createRoad(6, 160, 100, 40);
+    createRoad(6, 140, 0, 130);
+
+    // River
+    const river = new THREE.Mesh(
+      new THREE.PlaneGeometry(550, 48),
+      new THREE.MeshLambertMaterial({ color: 0x22708f })
+    );
+    river.rotation.x = -Math.PI / 2;
+    river.position.set(0, 0.02, 65);
+    worldGroup.add(river);
+
+    // Bamboo Bridge
+    const bridge = new THREE.Mesh(
+      new THREE.BoxGeometry(4.5, 0.5, 52),
+      new THREE.MeshLambertMaterial({ color: 0xa8783e })
+    );
+    bridge.position.set(0, 1.1, 65);
+    worldGroup.add(bridge);
+
+    // Tin Huts
+    function createTinHut(x, z, wallColor = 0xbda682) {
+      const hut = new THREE.Group();
+      const plinth = new THREE.Mesh(new THREE.BoxGeometry(9, 0.8, 7), new THREE.MeshLambertMaterial({ color: 0x7a5632 }));
+      plinth.position.y = 0.4;
+      hut.add(plinth);
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(8, 4.2, 6), new THREE.MeshLambertMaterial({ color: wallColor }));
+      walls.position.y = 2.9;
+      hut.add(walls);
+      const roofMat = new THREE.MeshLambertMaterial({ color: 0x6e808a });
+      const leftRoof = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.2, 4.4), roofMat);
+      leftRoof.position.set(0, 5.5, -1.4);
+      leftRoof.rotation.x = 0.55;
+      hut.add(leftRoof);
+      const rightRoof = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.2, 4.4), roofMat);
+      rightRoof.position.set(0, 5.5, 1.4);
+      rightRoof.rotation.x = -0.55;
+      hut.add(rightRoof);
+
+      hut.position.set(x, 0, z);
+      worldGroup.add(hut);
+    }
+
+    createTinHut(-18, -12);
+    createTinHut(22, -15);
+    createTinHut(16, -10);
+    createTinHut(-25, 120, 0x9c7f58);
+    createTinHut(20, 130, 0xa38965);
+    createTinHut(95, 35, 0x8a7050);
+
+    // Dinghy Boat
+    function createDinghy(x, z, rotY) {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.65, 6.5), new THREE.MeshLambertMaterial({ color: 0x3d2714 }));
+      b.position.set(x, 0.3, z);
+      b.rotation.y = rotY;
+      worldGroup.add(b);
+    }
+    createDinghy(15, 43, 0.2);
+    createDinghy(95, 45, 0.5);
+
+    // Tea Stall
+    const stall = new THREE.Group();
+    const counter = new THREE.Mesh(new THREE.BoxGeometry(5, 1.8, 2), new THREE.MeshLambertMaterial({ color: 0x4a2e16 }));
+    counter.position.set(7, 0.9, 6);
+    stall.add(counter);
+    worldGroup.add(stall);
+
+    // Paddy Field
+    const paddy = new THREE.Mesh(new THREE.BoxGeometry(32, 0.3, 28), new THREE.MeshLambertMaterial({ color: 0x6db32b }));
+    paddy.position.set(-45, 0.15, 15);
+    worldGroup.add(paddy);
+
+    // School
+    function createSchool(x, z) {
+      const school = new THREE.Group();
+      const walls = new THREE.Mesh(new THREE.BoxGeometry(16, 5.5, 9), new THREE.MeshLambertMaterial({ color: 0xa84332 }));
+      walls.position.y = 2.75;
+      school.add(walls);
+      const veranda = new THREE.Mesh(new THREE.BoxGeometry(16.5, 0.4, 10.5), new THREE.MeshLambertMaterial({ color: 0xdedede }));
+      veranda.position.y = 5.7;
+      school.add(veranda);
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 8, 8), new THREE.MeshLambertMaterial({ color: 0xcccccc }));
+      pole.position.set(0, 4, 6.5);
+      school.add(pole);
+      const flag = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.3), new THREE.MeshLambertMaterial({ color: 0x006a4e, side: THREE.DoubleSide }));
+      flag.position.set(1.1, 7.2, 6.5);
+      school.add(flag);
+      school.position.set(x, 0, z);
+      worldGroup.add(school);
+    }
+    createSchool(30, 20);
+
+    // Clinic
+    function createClinic(x, z) {
+      const clinic = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(9, 4.5, 7), new THREE.MeshLambertMaterial({ color: 0xedf2f7 }));
+      body.position.y = 2.25;
+      clinic.add(body);
+      clinic.position.set(x, 0, z);
+      worldGroup.add(clinic);
+    }
+    createClinic(-28, -20);
+
+    // Trees
+    function createTree(x, z) {
+      const tree = new THREE.Group();
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 8, 6), new THREE.MeshLambertMaterial({ color: 0x614427 }));
+      trunk.position.y = 4;
+      tree.add(trunk);
+      const foliage = new THREE.Mesh(new THREE.ConeGeometry(2.8, 5, 5), new THREE.MeshLambertMaterial({ color: 0x276b1b }));
+      foliage.position.y = 8;
+      tree.add(foliage);
+      tree.position.set(x, 0, z);
+      worldGroup.add(tree);
+    }
+    [[-10, 18], [15, 20], [-30, -5], [-25, 35], [35, 10], [5, -25], [-15, 105], [90, 20]].forEach(p => createTree(p[0], p[1]));
+
+    /* ==========================================================================
+       4. WEATHER & RAIN PARTICLES ENGINE
+       ========================================================================== */
+    const cloudsGroup = new THREE.Group();
+    const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+    for (let c = 0; c < 25; c++) {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(6 + Math.random() * 6, 7, 7), cloudMat);
+      puff.position.set((Math.random() - 0.5) * 350, 45 + Math.random() * 15, (Math.random() - 0.5) * 350);
+      cloudsGroup.add(puff);
+    }
+    scene.add(cloudsGroup);
+
+    const rainCount = 1800;
+    const rainGeo = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(rainCount * 3);
+    for (let r = 0; r < rainCount * 3; r += 3) {
+      rainPositions[r] = (Math.random() - 0.5) * 140;
+      rainPositions[r + 1] = Math.random() * 60;
+      rainPositions[r + 2] = (Math.random() - 0.5) * 140;
+    }
+    rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMat = new THREE.PointsMaterial({
+      color: 0x9bc7e8,
+      size: 0.35,
+      transparent: true,
+      opacity: 0.7
+    });
+    const rainParticles = new THREE.Points(rainGeo, rainMat);
+    rainParticles.visible = false;
+    scene.add(rainParticles);
+
+    function applyWeather(weatherObj) {
+      document.getElementById('weather-text').innerText = weatherObj.name;
+      document.getElementById('weather-icon').innerText = weatherObj.icon;
+
+      scene.fog.near = weatherObj.fogNear;
+      scene.fog.far = weatherObj.fogFar;
+
+      if (weatherObj.id === "rainy") {
+        rainParticles.visible = true;
+        cloudsGroup.visible = true;
+        soundEngine.setRainSound(true);
+      } else {
+        rainParticles.visible = false;
+        cloudsGroup.visible = weatherObj.id !== "foggy";
+        soundEngine.setRainSound(false);
+      }
+    }
+
+    document.getElementById('weather-toggle-btn')?.addEventListener('click', () => {
+      soundEngine.init();
+      GAME.time.weatherIndex = (GAME.time.weatherIndex + 1) % GAME.time.weathers.length;
+      const w = GAME.time.weathers[GAME.time.weatherIndex];
+      applyWeather(w);
+      showNotification(`আবহাওয়া পরিবর্তিত হলো: '${w.name}' ${w.icon}`);
+    });
+
+    /* ==========================================================================
+       5. ANIMATED PROCEDURAL PLAYER RIG
+       ========================================================================== */
+    class Player3D {
+      constructor() {
+        this.root = new THREE.Group();
+        this.speed = 8.5;
+        this.isMoving = false;
+        this.isSprinting = false;
+        this.animTimer = 0;
+        this.velocityY = 0;
+        this.gravity = 28;
+        this.isGrounded = true;
+
+        this.torso = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.4, 0.7), new THREE.MeshLambertMaterial({ color: 0x1f7a8c }));
+        this.torso.position.y = 1.9;
+        this.root.add(this.torso);
+
+        this.head = new THREE.Mesh(new THREE.SphereGeometry(0.48, 10, 10), new THREE.MeshLambertMaterial({ color: 0xbf8554 }));
+        this.head.position.y = 1.25;
+        this.torso.add(this.head);
+
+        this.hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 8), new THREE.MeshLambertMaterial({ color: 0x1c1713 }));
+        this.hair.position.set(0, 0.12, -0.05);
+        this.head.add(this.hair);
+
+        this.leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.1, 0.3), new THREE.MeshLambertMaterial({ color: 0xbf8554 }));
+        this.leftArm.position.set(-0.75, -0.1, 0);
+        this.torso.add(this.leftArm);
+
+        this.rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.1, 0.3), new THREE.MeshLambertMaterial({ color: 0xbf8554 }));
+        this.rightArm.position.set(0.75, -0.1, 0);
+        this.torso.add(this.rightArm);
+
+        this.leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.2, 0.4), new THREE.MeshLambertMaterial({ color: 0x3d5a45 }));
+        this.leftLeg.position.set(-0.32, -1.3, 0);
+        this.torso.add(this.leftLeg);
+
+        this.rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.2, 0.4), new THREE.MeshLambertMaterial({ color: 0x3d5a45 }));
+        this.rightLeg.position.set(0.32, -1.3, 0);
+        this.torso.add(this.rightLeg);
+
+        scene.add(this.root);
+        this.updateStageAttributes();
+      }
+
+      updateStageAttributes() {
+        const stage = GAME.player.stages[GAME.player.currentStageIndex];
+        const sc = stage.scale;
+        this.root.scale.set(sc, sc, sc);
+        this.speed = stage.speed;
+        if (stage.minAge >= 66) {
+          this.hair.material.color.setHex(0xe8e8e8);
+          this.torso.rotation.x = 0.18;
+        } else if (stage.minAge >= 51) {
+          this.hair.material.color.setHex(0x7a7a7a);
+          this.torso.rotation.x = 0.08;
+        } else {
+          this.hair.material.color.setHex(0x1c1713);
+          this.torso.rotation.x = 0.0;
+        }
+      }
+
+      jump() {
+        if (this.isGrounded && GAME.player.energy > 3) {
+          this.velocityY = 11.5;
+          this.isGrounded = false;
+          GAME.player.energy = Math.max(0, GAME.player.energy - 3);
+          soundEngine.playJump();
+          updateHUD();
+        }
+      }
+
+      update(delta) {
+        if (!this.isGrounded) {
+          this.velocityY -= this.gravity * delta;
+          this.root.position.y += this.velocityY * delta;
+          if (this.root.position.y <= 0) {
+            this.root.position.y = 0;
+            this.velocityY = 0;
+            this.isGrounded = true;
+          }
+        }
+
+        this.animTimer += delta * (this.isSprinting ? 15 : 9);
+        if (this.isMoving && this.isGrounded) {
+          this.leftLeg.rotation.x = Math.cos(this.animTimer) * 0.75;
+          this.rightLeg.rotation.x = -Math.cos(this.animTimer) * 0.75;
+          this.leftArm.rotation.x = -Math.sin(this.animTimer) * 0.7;
+          this.rightArm.rotation.x = Math.sin(this.animTimer) * 0.7;
+          this.torso.position.y = 1.9 + Math.abs(Math.sin(this.animTimer * 2)) * 0.1;
+          soundEngine.playFootstep();
+        } else if (!this.isGrounded) {
+          this.leftLeg.rotation.x = 0.4;
+          this.rightLeg.rotation.x = -0.3;
+          this.leftArm.rotation.x = -0.6;
+          this.rightArm.rotation.x = -0.6;
+          this.torso.position.y = 1.9;
+        } else {
+          this.leftLeg.rotation.x = 0;
+          this.rightLeg.rotation.x = 0;
+          this.leftArm.rotation.x = 0;
+          this.rightArm.rotation.x = 0;
+          this.torso.position.y = 1.9 + Math.sin(this.animTimer * 0.5) * 0.04;
+        }
+      }
+    }
+
+    const player = new Player3D();
+
+    /* ==========================================================================
+       6. NPCS & DIALOGUE
+       ========================================================================== */
+    const NPCS = {
+      mother: {
+        id: "mother",
+        name: "মা রহিমা",
+        role: "স্নেহময়ী মা",
+        icon: "👵",
+        relation: 85,
+        pos: new THREE.Vector3(-15, 0, -10),
+        color: 0x9c3d4f,
+        getDialogue: () => ({
+          text: "আমার সোনা মানিক, ধুলোবালিতে বেশি খেলিস না। ভাত বেড়ে রেখেছি, খেয়ে নে!",
+          choices: [
+            { label: "মা, খুব খিদে পেয়েছে! ভাত খাব।", effect: () => {
+              GAME.player.hunger = Math.min(100, GAME.player.hunger + 40);
+              GAME.player.happiness = Math.min(100, GAME.player.happiness + 20);
+              soundEngine.playEat();
+              showNotification("মায়ের হাতের গরম ভাত খেলেন! পরম তৃপ্তি পেলেন।");
+            }}
+          ]
+        })
+      },
+      kashem: {
+        id: "kashem",
+        name: "কাশেম চাচা",
+        role: "চায়ের দোকানি",
+        icon: "👳",
+        relation: 50,
+        pos: new THREE.Vector3(7, 0, 6),
+        color: 0x4a5d4e,
+        getDialogue: () => ({
+          text: "আরে ভাতিজা! এক কাপ স্পেশাল দুধ চা বানায় দিতাছি। দেশের খবর কি কও?",
+          choices: [
+            { label: "এক কাপ কড়া চা দেন চাচা (৳ ১০)", effect: () => {
+              if (GAME.player.money >= 10) {
+                GAME.player.money -= 10;
+                GAME.player.energy = Math.min(100, GAME.player.energy + 25);
+                soundEngine.playEat();
+                showNotification("কাশেম চাচার স্পেশাল কড়া চা খেলেন!");
+              } else {
+                showNotification("পকেটে পর্যাপ্ত টাকা নেই ভাতিজা!");
+              }
+            }}
+          ]
+        })
+      },
+      fatema: {
+        id: "fatema",
+        name: "ফাতেমা",
+        role: "মনের মানুষ",
+        icon: "🧕",
+        relation: 30,
+        pos: new THREE.Vector3(18, 0, -8),
+        color: 0xc87d55,
+        getDialogue: () => {
+          const currentYears = Math.floor(GAME.player.ageInMonths / 12);
+          if (GAME.player.isMarried) {
+            return {
+              text: "তুমি এসেছ? ঘরদোর গোছগাছ শেষ, সারাজীবন এভাবেই পাশে থেকো।",
+              choices: [
+                { label: "তুমি আমার জীবনের সবচেয়ে বড় উপহার ফাতেমা।", effect: () => {
+                  GAME.player.happiness = Math.min(100, GAME.player.happiness + 20);
+                }}
+              ]
+            };
+          }
+          return {
+            text: "কেমন আছেন সোহাগ ভাই? নদী পার হয়ে ওপারে গিয়েছিলেন?",
+            choices: [
+              { label: "ভালো আছি ফাতেমা। তোমার দিন কেমন কাটছে?", effect: () => {
+                NPCS.fatema.relation = Math.min(100, NPCS.fatema.relation + 8);
+                GAME.player.happiness = Math.min(100, GAME.player.happiness + 10);
+                showNotification("ফাতেমার সাথে মিষ্টি আলাপ হলো (+৮%)");
+              }},
+              { label: "💍 ফাতেমা, আমাকে বিয়ে করে আমার জীবনের সঙ্গী হবে? (প্রস্তাব)", effect: () => {
+                if (currentYears < 18) {
+                  showNotification("এখনো আপনার বিয়ের বয়স হয়নি! ১৮+ বছর হতে হবে।");
+                  return;
+                }
+                if (NPCS.fatema.relation < 80) {
+                  showNotification("ফাতেমা বললেন: 'আমরা তো একে অপরকে এখনো পুরোপুরি চিনি না!'");
+                  return;
+                }
+                if (GAME.player.money < 1500) {
+                  showNotification("বিয়ের আয়োজন ও দেনমোহরের জন্য কমপক্ষে ৳ ১,৫০০ দরকার!");
+                  return;
+                }
+                GAME.player.money -= 1500;
+                GAME.player.isMarried = true;
+                GAME.player.spouseName = "ফাতেমা";
+                NPCS.fatema.relation = 100;
+                GAME.player.happiness = 100;
+                document.getElementById('marital-status-tag').classList.remove('hidden');
+                soundEngine.playTone(659, 0.6, "sine");
+                showNotification("🎉 শুভ বিবাহ! গ্রামে ধুমধাম করে আপনাদের বিয়ে সম্পন্ন হলো!");
+              }}
+            ]
+          };
+        }
+      },
+      jeleshobuj: {
+        id: "jeleshobuj",
+        name: "সবুজ মাঝি",
+        role: "মাঝিপাড়ার অভিজ্ঞ জেলে",
+        icon: "🚣",
+        relation: 60,
+        pos: new THREE.Vector3(105, 0, 36),
+        color: 0x2d6a8e,
+        getDialogue: () => ({
+          text: "ওহে ভাই! নদীঘাটে প্রচুর তাজা দেশি মাছ পাওয়া যায়। বড়শি ফেলে মাছ ধরুন!",
+          choices: [
+            { label: "মাঝি ভাই, আজ নদীতে কী মাছ বেশি পাওয়া যাচ্ছে?", effect: () => {
+              showNotification("মাঝি বললেন: 'আজ নদীর মিষ্টি পানিতে বড় রুই আর ইলিশের মেলা!'");
+            }}
+          ]
+        })
+      }
+    };
+
+    const npcMeshes = {};
+    Object.values(NPCS).forEach(npc => {
+      const g = new THREE.Group();
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.35, 0.65), new THREE.MeshLambertMaterial({ color: npc.color }));
+      torso.position.y = 1.8;
+      g.add(torso);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.48, 10, 10), new THREE.MeshLambertMaterial({ color: 0xbf8554 }));
+      head.position.y = 1.2;
+      torso.add(head);
+
+      const canvasText = document.createElement('canvas');
+      canvasText.width = 256; canvasText.height = 64;
+      const ctx = canvasText.getContext('2d');
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+      ctx.roundRect(0, 0, 256, 64, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 4; ctx.stroke();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 24px Hind Siliguri, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText(`${npc.icon} ${npc.name}`, 128, 40);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvasText) }));
+      sprite.position.y = 3.4;
+      sprite.scale.set(3, 0.75, 1);
+      g.add(sprite);
+
+      g.position.copy(npc.pos);
+      worldGroup.add(g);
+      npcMeshes[npc.id] = g;
+    });
+
+    /* ==========================================================================
+       7. FISHING & INTERACTION SPOTS
+       ========================================================================== */
+    const FISH_SPECIES = [
+      { name: "তাজা রুই মাছ", icon: "🐟", price: 80, desc: "নদীর মিষ্টি পানির তরতাজা বড় রুই।" },
+      { name: "নদীর রূপালী ইলিশ", icon: "🐠", price: 150, desc: "বড়শিতে সদ্য ধরা রূপালী ইলিশ।" },
+      { name: "সুস্বাদু পাবদা মাছ", icon: "🐡", price: 95, desc: "রসনা তৃপ্তিকর দেশি নদীর পাবদা।" },
+      { name: "বড় কাতলা মাছ", icon: "🐟", price: 120, desc: "নদীর গভীর পানির বড় আকারের কাতলা।" }
+    ];
+
+    function startFishing() {
+      if (isFishing) return;
+      if (GAME.player.energy < 8) {
+        showNotification("মাছ ধরার মতো শরীরে শক্তি নেই! বিশ্রাম নিন।");
+        return;
+      }
+
+      isFishing = true;
+      const modal = document.getElementById('fishing-modal');
+      const bar = document.getElementById('fishing-progress-bar');
+      modal.classList.remove('hidden');
+      bar.style.width = '0%';
+
+      let progress = 0;
+      soundEngine.playSplash();
+
+      const timer = setInterval(() => {
+        progress += 25;
+        bar.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+          clearInterval(timer);
+          modal.classList.add('hidden');
+          isFishing = false;
+
+          GAME.player.energy -= 8;
+          GAME.player.happiness = Math.min(100, GAME.player.happiness + 15);
+
+          const caught = FISH_SPECIES[Math.floor(Math.random() * FISH_SPECIES.length)];
+          const existing = GAME.player.inventory.find(i => i.name === caught.name);
+          if (existing) {
+            existing.count += 1;
+          } else {
+            if (GAME.player.inventory.length < 12) {
+              GAME.player.inventory.push({
+                id: "fish_" + Date.now(),
+                name: caught.name,
+                icon: caught.icon,
+                type: "fish",
+                price: caught.price,
+                count: 1,
+                desc: caught.desc
+              });
+            } else {
+              showNotification("থলিতে আর জায়গা নেই! মাছটি নদীতে ছেড়ে দিলেন।");
+              updateHUD();
+              return;
+            }
+          }
+
+          soundEngine.playCoins();
+          showNotification(`🎣 দারুণ! আপনি একটি '${caught.name}' ধরেছেন!`);
+          updateHUD();
+        }
+      }, 700);
+    }
+
+    const SPOTS = [
+      {
+        id: "ghat_fish",
+        pos: new THREE.Vector3(15, 0, 43),
+        radius: 8,
+        label: "শান্তিপুর নদীঘাটে বড়শি ফেলে মাছ ধরুন 🎣",
+        action: () => startFishing()
+      },
+      {
+        id: "majhipara_fish",
+        pos: new THREE.Vector3(100, 0, 48),
+        radius: 9,
+        label: "মাঝিপাড়ার তীরে মাছ ধরুন 🎣",
+        action: () => startFishing()
+      },
+      {
+        id: "paddy_harvest",
+        pos: new THREE.Vector3(-45, 0, 15),
+        radius: 12,
+        label: "ধানের ক্ষেতে কাজ করুন (৳ ৬০ আয়)",
+        action: () => {
+          if (GAME.player.energy < 20) {
+            showNotification("শরীর অতিরিক্ত ক্লান্ত! কিছুটা বিশ্রাম নিন।");
+            return;
+          }
+          GAME.player.energy -= 20;
+          GAME.player.hunger = Math.max(0, GAME.player.hunger - 15);
+          GAME.player.money += 60;
+          soundEngine.playCoins();
+          showNotification("ধানের ক্ষেতের কাজ সম্পন্ন! ৳৬০ আয় হলো।");
+          updateHUD();
+        }
+      },
+      {
+        id: "school_spot",
+        pos: new THREE.Vector3(30, 0, 20),
+        radius: 8,
+        label: "বিদ্যালয়ে পড়াশোনা ও ডিগ্রি গ্রহণ",
+        action: () => {
+          GAME.activeCareerTab = "edu";
+          toggleCareerModal(true);
+        }
+      },
+      {
+        id: "noyanpur_farm",
+        pos: new THREE.Vector3(40, 0, 125),
+        radius: 10,
+        label: "নয়নপুরের সবজি বাগান পরিচর্যা (৳ ৫০ আয়)",
+        action: () => {
+          if (GAME.player.energy < 15) {
+            showNotification("ক্লান্ত শরীর! বিশ্রাম নিন।");
+            return;
+          }
+          GAME.player.energy -= 15;
+          GAME.player.money += 50;
+          soundEngine.playCoins();
+          showNotification("নয়নপুরের সবজি পরিচর্যা করলেন! ৳৫০ পেলেন।");
+          updateHUD();
+        }
+      }
+    ];
+
+    let currentTrigger = null;
+
+    function checkProximity() {
+      const pPos = player.root.position;
+      let matched = null;
+
+      const locText = document.getElementById('player-location-text');
+      if (pPos.z > 80) {
+        locText.innerText = "নয়নপুর গ্রাম (দক্ষিণ)";
+        locText.className = "text-amber-400 font-semibold";
+      } else if (pPos.x > 60) {
+        locText.innerText = "মাঝিপাড়া (জেলে পাড়া)";
+        locText.className = "text-sky-400 font-semibold";
+      } else {
+        locText.innerText = "শান্তিপুর গ্রাম";
+        locText.className = "text-emerald-400 font-semibold";
+      }
+
+      for (const npc of Object.values(NPCS)) {
+        if (pPos.distanceTo(npc.pos) < 4.5) {
+          matched = { type: 'npc', data: npc, text: `${npc.name}-এর সাথে কথা বলুন` };
+          break;
+        }
+      }
+
+      if (!matched) {
+        for (const spot of SPOTS) {
+          if (pPos.distanceTo(spot.pos) < spot.radius) {
+            matched = { type: 'spot', data: spot, text: spot.label };
+            break;
+          }
+        }
+      }
+
+      const prompt = document.getElementById('action-prompt');
+      const text = document.getElementById('action-text');
+
+      if (matched) {
+        currentTrigger = matched;
+        text.innerText = matched.text;
+        prompt.classList.remove('opacity-0', 'translate-y-6', 'pointer-events-none');
+        prompt.classList.add('opacity-100', 'translate-y-0');
+      } else {
+        currentTrigger = null;
+        prompt.classList.add('opacity-0', 'translate-y-6', 'pointer-events-none');
+        prompt.classList.remove('opacity-100', 'translate-y-0');
+      }
+    }
+
+    function triggerInteraction() {
+      soundEngine.init();
+      if (!currentTrigger) return;
+      if (currentTrigger.type === 'npc') {
+        openDialogue(currentTrigger.data);
+      } else if (currentTrigger.type === 'spot') {
+        currentTrigger.data.action();
+      }
+    }
+
+    function openDialogue(npc) {
+      const modal = document.getElementById('dialogue-modal');
+      document.getElementById('npc-avatar-box').innerText = npc.icon;
+      document.getElementById('npc-name-title').innerText = npc.name;
+      document.getElementById('npc-role-badge').innerText = npc.role;
+      document.getElementById('npc-relation-bar').style.width = `${npc.relation}%`;
+      document.getElementById('npc-relation-val').innerText = `${npc.relation}%`;
+
+      const dlg = npc.getDialogue();
+      document.getElementById('npc-speech-bubble').innerText = `"${dlg.text}"`;
+      const choicesBox = document.getElementById('dialogue-choices');
+      choicesBox.innerHTML = '';
+
+      dlg.choices.forEach(ch => {
+        const btn = document.createElement('button');
+        btn.className = "mobile-btn w-full text-left p-3 bg-slate-800/80 active:bg-emerald-900/60 border border-slate-700/80 rounded-2xl text-xs sm:text-sm font-semibold transition-all active:scale-[0.98] flex items-center justify-between text-slate-200";
+        btn.innerHTML = `<span>💬 ${ch.label}</span> <span class="text-emerald-400 font-bold text-xs">➔</span>`;
+        btn.onclick = () => {
+          ch.effect();
+          updateHUD();
+          document.getElementById('dialogue-modal').classList.add('hidden');
+        };
+        choicesBox.appendChild(btn);
+      });
+
+      modal.classList.remove('hidden');
+    }
+    document.getElementById('btn-close-dialogue')?.addEventListener('click', () => {
+      document.getElementById('dialogue-modal').classList.add('hidden');
+    });
+
+    /* ==========================================================================
+       8. CAREER, EDUCATION & INVENTORY
+       ========================================================================== */
+    const EDUCATION_COURSES = [
+      { id: 1, title: "প্রাথমিক বিদ্যালয় (১ম - ৫ম)", minAge: 5, cost: 50, intellectGain: 25, desc: "মৌলিক বর্ণমালা ও প্রাথমিক শিক্ষা সম্পন্ন।" },
+      { id: 2, title: "উচ্চ বিদ্যালয় (এসএসসি)", minAge: 11, cost: 200, intellectGain: 35, desc: "বিজ্ঞান, গণিত ও এসএসসি বোর্ড সনদ লাভ।" },
+      { id: 3, title: "কলেজ (এইচএসসি)", minAge: 16, cost: 500, intellectGain: 40, desc: "উচ্চ মাধ্যমিক ডিগ্রি অর্জন যা চাকরির পথ খোলে।" },
+      { id: 4, title: "বিশ্ববিদ্যালয় ডিগ্রি (স্নাতক)", minAge: 19, cost: 1200, intellectGain: 50, desc: "উচ্চতর শিক্ষা ও পেশাগত শীর্ষ সোপান।" }
+    ];
+
+    const JOBS_LIST = [
+      { id: "farmer", title: "পেশাদার কৃষক", eduReq: 0, dailySalary: 60, desc: "ধানি জমি চাষ ও শস্য উৎপাদন।" },
+      { id: "primary_teacher", title: "স্কুল শিক্ষক", eduReq: 2, dailySalary: 140, desc: "গ্রামের শিক্ষার্থীদের আদর্শ শিক্ষা দান।" },
+      { id: "rural_doctor", title: "পল্লী চিকিৎসক", eduReq: 4, dailySalary: 350, desc: "ডিসপেনসারিতে রোগী দেখা এবং সেবা দান।" },
+      { id: "software_dev", title: "সফটওয়্যার ডেভেলপার", eduReq: 3, dailySalary: 420, desc: "গ্রামের বাড়ি থেকেই প্রযুক্তির মাধ্যমে বিশ্বমানের আয়।" }
+    ];
+
+    const BUSINESS_LIST = [
+      { id: "grocery_store", title: "হাটের পাকা মুদি দোকান", capitalReq: 800, dailyProfit: 150, desc: "খাদ্যসামগ্রী বিক্রির লাভজনক দোকান।" },
+      { id: "poultry_farm", title: "উন্নত পোল্ট্রি ও ডেইরি খামার", capitalReq: 2000, dailyProfit: 400, desc: "মুরগি ও গাভীর সমন্বিত খামার।" }
+    ];
+
+    function toggleCareerModal(forceOpen = false) {
+      soundEngine.init();
+      const modal = document.getElementById('career-modal');
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden || forceOpen) {
+        renderCareerTabContent();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+    document.getElementById('btn-open-career')?.addEventListener('click', () => toggleCareerModal());
+    document.getElementById('btn-close-career')?.addEventListener('click', () => toggleCareerModal());
+
+    document.getElementById('tab-btn-edu')?.addEventListener('click', () => {
+      GAME.activeCareerTab = "edu";
+      renderCareerTabContent();
+    });
+    document.getElementById('tab-btn-jobs')?.addEventListener('click', () => {
+      GAME.activeCareerTab = "jobs";
+      renderCareerTabContent();
+    });
+    document.getElementById('tab-btn-biz')?.addEventListener('click', () => {
+      GAME.activeCareerTab = "biz";
+      renderCareerTabContent();
+    });
+
+    function renderCareerTabContent() {
+      const container = document.getElementById('career-modal-content');
+      container.innerHTML = '';
+      const currentYears = Math.floor(GAME.player.ageInMonths / 12);
+
+      const tEdu = document.getElementById('tab-btn-edu');
+      const tJob = document.getElementById('tab-btn-jobs');
+      const tBiz = document.getElementById('tab-btn-biz');
+      [tEdu, tJob, tBiz].forEach(b => b.className = "pb-2 border-b-2 border-transparent text-slate-400");
+      if (GAME.activeCareerTab === "edu") tEdu.className = "pb-2 border-b-2 border-sky-400 text-sky-300 font-bold";
+      if (GAME.activeCareerTab === "jobs") tJob.className = "pb-2 border-b-2 border-sky-400 text-sky-300 font-bold";
+      if (GAME.activeCareerTab === "biz") tBiz.className = "pb-2 border-b-2 border-sky-400 text-sky-300 font-bold";
+
+      if (GAME.activeCareerTab === "edu") {
+        EDUCATION_COURSES.forEach(edu => {
+          const isCompleted = GAME.player.educationLevel >= edu.id;
+          const isNext = GAME.player.educationLevel === edu.id - 1;
+          const canEnroll = isNext && currentYears >= edu.minAge && GAME.player.money >= edu.cost;
+
+          const card = document.createElement('div');
+          card.className = `p-3 rounded-2xl border ${isCompleted ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-800/80 border-slate-700'} flex items-center justify-between`;
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs sm:text-sm text-slate-100">${edu.title}</span>
+                ${isCompleted ? '<span class="text-[9px] bg-emerald-600 px-1.5 py-0.5 rounded-full text-white font-bold">অর্জিত ✔</span>' : ''}
+              </div>
+              <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">${edu.desc}</p>
+              <div class="text-[10px] text-sky-300 mt-1 flex gap-2">
+                <span>বয়স: ${edu.minAge}+</span>
+                <span>ফি: ৳${edu.cost}</span>
+              </div>
+            </div>
+            <div>
+              ${!isCompleted ? `
+                <button class="mobile-btn enroll-btn px-3 py-1.5 ${canEnroll ? 'bg-sky-600 active:bg-sky-500 text-white font-bold' : 'bg-slate-700 text-slate-500'} rounded-xl text-xs" ${!canEnroll ? 'disabled' : ''}>
+                  ভর্তি
+                </button>
+              ` : ''}
+            </div>
+          `;
+          card.querySelector('.enroll-btn')?.addEventListener('click', () => {
+            GAME.player.money -= edu.cost;
+            GAME.player.educationLevel = edu.id;
+            GAME.player.intellect += edu.intellectGain;
+            soundEngine.playCoins();
+            showNotification(`🎉 অভিনন্দন! '${edu.title}' সম্পন্ন হলো!`);
+            renderCareerTabContent();
+            updateHUD();
+          });
+          container.appendChild(card);
+        });
+      }
+
+      if (GAME.activeCareerTab === "jobs") {
+        JOBS_LIST.forEach(job => {
+          const isCurrentJob = GAME.player.job?.id === job.id;
+          const meetsEdu = GAME.player.educationLevel >= job.eduReq;
+          const canApply = !isCurrentJob && meetsEdu && currentYears >= 16;
+
+          const card = document.createElement('div');
+          card.className = `p-3 rounded-2xl border ${isCurrentJob ? 'bg-amber-950/40 border-amber-500/50' : 'bg-slate-800/80 border-slate-700'} flex items-center justify-between`;
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs sm:text-sm text-slate-100">${job.title}</span>
+                ${isCurrentJob ? '<span class="text-[9px] bg-amber-600 px-1.5 py-0.5 rounded-full text-slate-950 font-bold">বর্তমান</span>' : ''}
+              </div>
+              <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">${job.desc}</p>
+              <div class="text-[10px] text-amber-300 mt-1">
+                <span>বেতন: ৳${job.dailySalary} / দিন</span>
+              </div>
+            </div>
+            <div>
+              ${!isCurrentJob ? `
+                <button class="mobile-btn job-btn px-3 py-1.5 ${canApply ? 'bg-emerald-600 active:bg-emerald-500 text-white font-bold' : 'bg-slate-700 text-slate-500'} rounded-xl text-xs" ${!canApply ? 'disabled' : ''}>
+                  নিয়োগ
+                </button>
+              ` : ''}
+            </div>
+          `;
+          card.querySelector('.job-btn')?.addEventListener('click', () => {
+            GAME.player.job = job;
+            soundEngine.playCoins();
+            showNotification(`🎉 '${job.title}' হিসেবে কাজে যোগ দিয়েছেন!`);
+            renderCareerTabContent();
+            updateHUD();
+          });
+          container.appendChild(card);
+        });
+      }
+
+      if (GAME.activeCareerTab === "biz") {
+        BUSINESS_LIST.forEach(biz => {
+          const ownsBiz = GAME.player.business?.id === biz.id;
+          const canBuy = !ownsBiz && GAME.player.money >= biz.capitalReq;
+
+          const card = document.createElement('div');
+          card.className = `p-3 rounded-2xl border ${ownsBiz ? 'bg-emerald-950/40 border-emerald-500/50' : 'bg-slate-800/80 border-slate-700'} flex items-center justify-between`;
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="font-bold text-xs sm:text-sm text-slate-100">${biz.title}</span>
+                ${ownsBiz ? '<span class="text-[9px] bg-emerald-600 px-1.5 py-0.5 rounded-full text-white font-bold">মালিক 👑</span>' : ''}
+              </div>
+              <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">${biz.desc}</p>
+              <div class="text-[10px] text-emerald-300 mt-1 flex gap-2">
+                <span>মূলধন: ৳${biz.capitalReq}</span>
+                <span>মুনাফা: ৳${biz.dailyProfit}/দিন</span>
+              </div>
+            </div>
+            <div>
+              ${!ownsBiz ? `
+                <button class="mobile-btn biz-btn px-3 py-1.5 ${canBuy ? 'bg-emerald-600 active:bg-emerald-500 text-white font-bold' : 'bg-slate-700 text-slate-500'} rounded-xl text-xs" ${!canBuy ? 'disabled' : ''}>
+                  শুরু করুন
+                </button>
+              ` : ''}
+            </div>
+          `;
+          card.querySelector('.biz-btn')?.addEventListener('click', () => {
+            GAME.player.money -= biz.capitalReq;
+            GAME.player.business = biz;
+            soundEngine.playCoins();
+            showNotification(`🎉 আপনি '${biz.title}' চালু করেছেন!`);
+            renderCareerTabContent();
+            updateHUD();
+          });
+          container.appendChild(card);
+        });
+      }
+    }
+
+    /* ==========================================================================
+       9. INVENTORY & DETAILS
+       ========================================================================== */
+    let selectedInvItem = null;
+
+    function toggleInventoryModal() {
+      soundEngine.init();
+      const modal = document.getElementById('inventory-modal');
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        renderInventoryGrid();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+    document.getElementById('btn-open-inventory')?.addEventListener('click', toggleInventoryModal);
+    document.getElementById('btn-close-inv')?.addEventListener('click', toggleInventoryModal);
+
+    function renderInventoryGrid() {
+      const grid = document.getElementById('inv-grid');
+      grid.innerHTML = '';
+      document.getElementById('inv-count').innerText = `${GAME.player.inventory.length} / ১২`;
+      document.getElementById('inv-money-text').innerText = `৳ ${GAME.player.money}`;
+
+      GAME.player.inventory.forEach(item => {
+        const cell = document.createElement('div');
+        cell.className = "mobile-btn bg-slate-800/90 border border-slate-700 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center relative active:scale-95";
+        cell.innerHTML = `
+          <div class="text-2xl mb-1">${item.icon}</div>
+          <div class="text-[11px] font-bold text-slate-200 line-clamp-1">${item.name}</div>
+          <span class="absolute top-1 right-1.5 bg-emerald-700 text-[9px] font-bold px-1.5 rounded-full text-white">x${item.count}</span>
+        `;
+        cell.onclick = () => {
+          selectedInvItem = item;
+          document.getElementById('inv-selected-name').innerText = `${item.name} (x${item.count})`;
+          document.getElementById('inv-selected-desc').innerText = item.desc;
+          const btn = document.getElementById('btn-use-item');
+          btn.innerText = item.type === "fish" ? `হাটে বিক্রি করুন (৳${item.price})` : (item.type === "food" ? "খান" : "ব্যবহার");
+          document.getElementById('inv-details-panel').classList.remove('hidden');
+        };
+        grid.appendChild(cell);
+      });
+    }
+
+    document.getElementById('btn-use-item')?.addEventListener('click', () => {
+      if (!selectedInvItem) return;
+
+      if (selectedInvItem.type === "fish") {
+        GAME.player.money += selectedInvItem.price;
+        soundEngine.playCoins();
+        showNotification(`${selectedInvItem.name} বিক্রি করে ৳${selectedInvItem.price} পেলেন!`);
+        selectedInvItem.count -= 1;
+      } else if (selectedInvItem.type === "food") {
+        GAME.player.hunger = Math.min(100, GAME.player.hunger + (selectedInvItem.hunger || 20));
+        soundEngine.playEat();
+        showNotification(`${selectedInvItem.name} খেলেন! ক্ষুধা কমল।`);
+        selectedInvItem.count -= 1;
+      }
+
+      if (selectedInvItem.count <= 0) {
+        GAME.player.inventory = GAME.player.inventory.filter(i => i.id !== selectedInvItem.id);
+        document.getElementById('inv-details-panel').classList.add('hidden');
+        selectedInvItem = null;
+      }
+      renderInventoryGrid();
+      updateHUD();
+    });
+
+    function toggleRelationshipModal() {
+      soundEngine.init();
+      const modal = document.getElementById('relationship-modal');
+      const isHidden = modal.classList.contains('hidden');
+      if (isHidden) {
+        const list = document.getElementById('relationship-list');
+        list.innerHTML = '';
+        Object.values(NPCS).forEach(npc => {
+          const row = document.createElement('div');
+          row.className = "py-2.5 flex items-center justify-between";
+          row.innerHTML = `
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xl">${npc.icon}</div>
+              <div>
+                <div class="font-bold text-xs text-slate-200">${npc.name}</div>
+                <div class="text-[10px] text-slate-400">${npc.role}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-16 sm:w-24 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                <div class="h-full bg-rose-500 rounded-full" style="width: ${npc.relation}%;"></div>
+              </div>
+              <span class="text-[11px] font-mono font-bold text-rose-400">${npc.relation}%</span>
+            </div>
+          `;
+          list.appendChild(row);
+        });
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+    document.getElementById('btn-open-relations')?.addEventListener('click', toggleRelationshipModal);
+    document.getElementById('btn-close-rel')?.addEventListener('click', toggleRelationshipModal);
+
+    /* ==========================================================================
+       10. REST & PASS DAY
+       ========================================================================== */
+    function restAndAdvance() {
+      soundEngine.init();
+      GAME.player.energy = 100;
+      GAME.player.health = Math.min(100, GAME.player.health + 20);
+      GAME.player.hunger = Math.max(10, GAME.player.hunger - 30);
+      GAME.player.ageInMonths += 4;
+
+      let incomeToday = (GAME.player.job?.dailySalary || 0) + (GAME.player.business?.dailyProfit || 0);
+      if (incomeToday > 0) {
+        GAME.player.money += incomeToday;
+        soundEngine.playCoins();
+        showNotification(`নতুন সকাল! চাকরি ও ব্যবসা থেকে ৳${incomeToday} আয় হলো।`);
+      } else {
+        showNotification("সুস্থ গভীর ঘুমে বিশ্রাম নিলেন। নতুন সকাল শুরু হলো।");
+      }
+
+      const currentYears = Math.floor(GAME.player.ageInMonths / 12);
+      const newStageIndex = GAME.player.stages.findIndex(s => currentYears >= s.minAge && currentYears <= s.maxAge);
+      if (newStageIndex !== -1 && newStageIndex !== GAME.player.currentStageIndex) {
+        GAME.player.currentStageIndex = newStageIndex;
+        player.updateStageAttributes();
+        showNotification(`🎉 নতুন জীবন স্তর: '${GAME.player.stages[newStageIndex].name}'!`);
+      }
+
+      saveGameToDisk();
+      updateHUD();
+    }
+    document.getElementById('btn-rest-home')?.addEventListener('click', restAndAdvance);
+
+    /* ==========================================================================
+       11. PERSISTENCE (SAVE / LOAD)
+       ========================================================================== */
+    function saveGameToDisk() {
+      try {
+        GAME.player.position = {
+          x: player.root.position.x,
+          y: player.root.position.y,
+          z: player.root.position.z
+        };
+        localStorage.setItem(SAVE_KEY, JSON.stringify(GAME));
+        showNotification("গেম সংরক্ষিত হয়েছে! 💾");
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function loadGameFromDisk() {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        try {
+          GAME = JSON.parse(raw);
+          player.root.position.set(GAME.player.position.x, GAME.player.position.y, GAME.player.position.z);
+          player.updateStageAttributes();
+          updateHUD();
+          showNotification("আগের জীবন সফলভাবে লোড হয়েছে! 🌾");
+          return true;
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return false;
+    }
+
+    setInterval(saveGameToDisk, 60000);
+
+    function toggleSaveMenu() {
+      soundEngine.init();
+      document.getElementById('save-menu-modal').classList.toggle('hidden');
+    }
+    document.getElementById('btn-save-manual')?.addEventListener('click', toggleSaveMenu);
+    document.getElementById('btn-close-save-menu')?.addEventListener('click', toggleSaveMenu);
+    document.getElementById('btn-do-save')?.addEventListener('click', () => {
+      saveGameToDisk();
+      toggleSaveMenu();
+    });
+    document.getElementById('btn-reset-data')?.addEventListener('click', () => {
+      if (confirm("সমস্ত সেভ মুছে ফেলে নতুন জীবন শুরু করবেন?")) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+      }
+    });
+
+    /* ==========================================================================
+       12. CONTROLLERS
+       ========================================================================== */
+    const keys = { w: false, a: false, s: false, d: false, q: false, e: false, shift: false };
+    const joystick = { x: 0, y: 0, active: false };
+
+    let cameraAngleX = 0;
+    let cameraAngleY = 0.45;
+    let cameraDistance = 11.0;
+
+    let isMouseDown = false;
+    let prevMouseX = 0, prevMouseY = 0;
+
+    canvas.addEventListener('mousedown', (e) => {
+      soundEngine.init();
+      if (e.button === 0) {
+        isMouseDown = true;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+      }
+    });
+    window.addEventListener('mouseup', () => { isMouseDown = false; });
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDown) return;
+      const deltaX = e.clientX - prevMouseX;
+      const deltaY = e.clientY - prevMouseY;
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
+      cameraAngleX -= deltaX * 0.006;
+      cameraAngleY = Math.max(0.1, Math.min(1.4, cameraAngleY + deltaY * 0.005));
+    });
+    window.addEventListener('wheel', (e) => {
+      cameraDistance = Math.max(5.0, Math.min(24.0, cameraDistance + e.deltaY * 0.015));
+    }, { passive: true });
+
+    // Desktop Keyboard
+    window.addEventListener('keydown', (e) => {
+      soundEngine.init();
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.w = true;
+      if (k === 's' || k === 'arrowdown') keys.s = true;
+      if (k === 'a' || k === 'arrowleft') keys.a = true;
+      if (k === 'd' || k === 'arrowright') keys.d = true;
+      if (k === 'q') keys.q = true;
+      if (k === 'e') keys.e = true;
+      if (k === 'shift') keys.shift = true;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        player.jump();
+      }
+      if (k === 'f') triggerInteraction();
+      if (k === 'c') toggleCareerModal();
+      if (k === 'i') toggleInventoryModal();
+      if (k === 'r') toggleRelationshipModal();
+      if (k === 'm') toggleSaveMenu();
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'w' || k === 'arrowup') keys.w = false;
+      if (k === 's' || k === 'arrowdown') keys.s = false;
+      if (k === 'a' || k === 'arrowleft') keys.a = false;
+      if (k === 'd' || k === 'arrowright') keys.d = false;
+      if (k === 'q') keys.q = false;
+      if (k === 'e') keys.e = false;
+      if (k === 'shift') keys.shift = false;
+    });
+
+    // Mobile Joystick & Touch
+    const joyZone = document.getElementById('joystick-zone');
+    const joyStick = document.getElementById('joystick-stick');
+    let touchJoyId = null;
+    let joyCenter = { x: 0, y: 0 };
+    let touchCamId = null;
+    let prevTouchX = 0, prevTouchY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      soundEngine.init();
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        const rect = joyZone.getBoundingClientRect();
+        if (t.clientX >= rect.left && t.clientX <= rect.right && t.clientY >= rect.top && t.clientY <= rect.bottom) {
+          touchJoyId = t.identifier;
+          joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+          handleJoyMove(t.clientX, t.clientY);
+        } else if (t.clientX > window.innerWidth * 0.4 && touchCamId === null) {
+          touchCamId = t.identifier;
+          prevTouchX = t.clientX;
+          prevTouchY = t.clientY;
+        }
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === touchJoyId) {
+          handleJoyMove(t.clientX, t.clientY);
+        } else if (t.identifier === touchCamId) {
+          const deltaX = t.clientX - prevTouchX;
+          const deltaY = t.clientY - prevTouchY;
+          prevTouchX = t.clientX;
+          prevTouchY = t.clientY;
+          cameraAngleX -= deltaX * 0.008;
+          cameraAngleY = Math.max(0.1, Math.min(1.4, cameraAngleY + deltaY * 0.007));
+        }
+      }
+    }, { passive: false });
+
+    const handleTouchEnd = (e) => {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === touchJoyId) {
+          touchJoyId = null;
+          joystick.x = 0;
+          joystick.y = 0;
+          joystick.active = false;
+          joyStick.style.transform = `translate(0px, 0px)`;
+        } else if (t.identifier === touchCamId) {
+          touchCamId = null;
+        }
+      }
+    };
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+
+    function handleJoyMove(cx, cy) {
+      const dx = cx - joyCenter.x;
+      const dy = cy - joyCenter.y;
+      const dist = Math.min(Math.hypot(dx, dy), 50);
+      const angle = Math.atan2(dy, dx);
+      const jx = Math.cos(angle) * dist;
+      const jy = Math.sin(angle) * dist;
+      joyStick.style.transform = `translate(${jx}px, ${jy}px)`;
+      joystick.x = jx / 50;
+      joystick.y = jy / 50;
+      joystick.active = dist > 5;
+    }
+
+    document.getElementById('btn-mobile-jump')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      player.jump();
+    });
+
+    document.getElementById('btn-mobile-action')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerInteraction();
+    });
+
+    document.getElementById('btn-prompt-interact')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerInteraction();
+    });
+
+    const sprintBtn = document.getElementById('btn-mobile-sprint');
+    const sprintLbl = document.getElementById('sprint-label');
+    sprintBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isMobileSprint = !isMobileSprint;
+      if (isMobileSprint) {
+        sprintBtn.classList.remove('bg-slate-900/90', 'border-amber-500/50');
+        sprintBtn.classList.add('bg-amber-600', 'border-amber-300', 'text-slate-950');
+        sprintLbl.innerText = "দৌড়াচ্ছেন";
+      } else {
+        sprintBtn.classList.remove('bg-amber-600', 'border-amber-300', 'text-slate-950');
+        sprintBtn.classList.add('bg-slate-900/90', 'border-amber-500/50', 'text-amber-300');
+        sprintLbl.innerText = "দৌড়";
+      }
+    });
+
+    /* ==========================================================================
+       13. HUD REFRESH
+       ========================================================================== */
+    function updateHUD() {
+      document.getElementById('bar-health').style.width = `${GAME.player.health}%`;
+      document.getElementById('val-health').innerText = Math.round(GAME.player.health);
+      document.getElementById('bar-energy').style.width = `${GAME.player.energy}%`;
+      document.getElementById('val-energy').innerText = Math.round(GAME.player.energy);
+      document.getElementById('bar-hunger').style.width = `${GAME.player.hunger}%`;
+      document.getElementById('val-hunger').innerText = Math.round(GAME.player.hunger);
+
+      document.getElementById('hud-money').innerText = `৳ ${GAME.player.money}`;
+
+      const years = Math.floor(GAME.player.ageInMonths / 12);
+      const months = GAME.player.ageInMonths % 12;
+      const stage = GAME.player.stages[GAME.player.currentStageIndex];
+
+      document.getElementById('player-age-text').innerText = `${years} বছর ${months > 0 ? months + ' মাস' : ''}`;
+      document.getElementById('player-stage-tag').innerText = stage.name;
+      document.getElementById('avatar-container').innerText = stage.icon;
+    }
+
+    function showNotification(msg) {
+      const box = document.getElementById('notification-box');
+      box.innerText = msg;
+      box.classList.remove('opacity-0');
+      box.classList.add('opacity-100');
+      setTimeout(() => {
+        box.classList.remove('opacity-100');
+        box.classList.add('opacity-0');
+      }, 3500);
+    }
+
+    /* ==========================================================================
+       14. GAME LOOP (DYNAMIC TIME & WEATHER ENGINE)
+       ========================================================================== */
+    const clock = new THREE.Clock();
+
+    function gameLoop() {
+      requestAnimationFrame(gameLoop);
+      const delta = Math.min(clock.getDelta(), 0.1);
+
+      // --- Dynamic Time Flow ---
+      GAME.time.totalMinutes += delta * GAME.time.timeSpeed;
+      if (GAME.time.totalMinutes >= 24 * 60) {
+        GAME.time.totalMinutes = 0;
+      }
+
+      const totalM = Math.floor(GAME.time.totalMinutes);
+      const hours = Math.floor(totalM / 60);
+      const minutes = totalM % 60;
+      const strH = hours.toString().padStart(2, '0');
+      const strM = minutes.toString().padStart(2, '0');
+
+      let period = "দিন";
+      let timeIcon = "☀️";
+      if (hours >= 5 && hours < 7) { period = "ভোর"; timeIcon = "🌅"; }
+      else if (hours >= 7 && hours < 12) { period = "সকাল"; timeIcon = "☀️"; }
+      else if (hours >= 12 && hours < 15) { period = "দুপুর"; timeIcon = "🌞"; }
+      else if (hours >= 15 && hours < 18) { period = "বিকাল"; timeIcon = "🌤️"; }
+      else if (hours >= 18 && hours < 20) { period = "গোধূলি"; timeIcon = "🌇"; }
+      else { period = "রাত"; timeIcon = "🌙"; }
+
+      document.getElementById('time-text').innerText = `${period} ${strH}:${strM}`;
+      document.getElementById('time-icon').innerText = timeIcon;
+
+      // Sun Lighting and Sky Transitions
+      const timeAngle = (GAME.time.totalMinutes / (24 * 60)) * Math.PI * 2 - Math.PI / 2;
+      const sunDistance = 180;
+      sunLight.position.x = player.root.position.x + Math.cos(timeAngle) * sunDistance;
+      sunLight.position.y = Math.sin(timeAngle) * sunDistance;
+      sunLight.position.z = player.root.position.z + 40;
+
+      const sunHeight = Math.max(-1, Math.min(1, sunLight.position.y / sunDistance));
+
+      let skyColor = new THREE.Color();
+      let fogColor = new THREE.Color();
+
+      if (sunHeight > 0.2) {
+        skyColor.setHex(0x7ec0ee);
+        fogColor.setHex(0x7ec0ee);
+        ambientLight.intensity = 0.85;
+        sunLight.intensity = 1.25;
+        sunLight.color.setHex(0xfffae6);
+      } else if (sunHeight > 0) {
+        skyColor.setHex(0xfda061);
+        fogColor.setHex(0xfda061);
+        ambientLight.intensity = 0.55;
+        sunLight.intensity = 0.8;
+        sunLight.color.setHex(0xff7733);
+      } else if (sunHeight > -0.2) {
+        skyColor.setHex(0x2d325a);
+        fogColor.setHex(0x2d325a);
+        ambientLight.intensity = 0.35;
+        sunLight.intensity = 0.2;
+      } else {
+        skyColor.setHex(0x0a1128);
+        fogColor.setHex(0x0a1128);
+        ambientLight.intensity = 0.25;
+        sunLight.intensity = 0.15;
+        sunLight.color.setHex(0x88bbff);
+      }
+
+      scene.background.lerp(skyColor, 0.05);
+      scene.fog.color.lerp(fogColor, 0.05);
+
+      // Rain Particles Animation
+      if (rainParticles.visible) {
+        const positions = rainGeo.attributes.position.array;
+        for (let i = 1; i < rainCount * 3; i += 3) {
+          positions[i] -= 55 * delta;
+          if (positions[i] < 0) {
+            positions[i] = 55 + Math.random() * 5;
+          }
+        }
+        rainGeo.attributes.position.needsUpdate = true;
+        rainParticles.position.x = player.root.position.x;
+        rainParticles.position.z = player.root.position.z;
+      }
+
+      // Movement & Controls
+      if (keys.q) cameraAngleX += 2.0 * delta;
+      if (keys.e) cameraAngleX -= 2.0 * delta;
+
+      GAME.player.hunger = Math.max(0, GAME.player.hunger - delta * 0.08);
+
+      let moveForward = 0;
+      let moveStrafe = 0;
+
+      if (keys.w) moveForward += 1;
+      if (keys.s) moveForward -= 1;
+      if (keys.d) moveStrafe += 1;
+      if (keys.a) moveStrafe -= 1;
+
+      if (joystick.active) {
+        moveStrafe = joystick.x;
+        moveForward = -joystick.y;
+      }
+
+      const inputLen = Math.hypot(moveForward, moveStrafe);
+      player.isMoving = inputLen > 0.08 && !isFishing;
+      player.isSprinting = (keys.shift || isMobileSprint) && player.isMoving && GAME.player.energy > 10;
+
+      if (player.isMoving) {
+        const fwdX = -Math.sin(cameraAngleX);
+        const fwdZ = -Math.cos(cameraAngleX);
+        const rightX = Math.cos(cameraAngleX);
+        const rightZ = -Math.sin(cameraAngleX);
+
+        const nFwd = moveForward / (inputLen || 1);
+        const nStr = moveStrafe / (inputLen || 1);
+
+        const worldDirX = fwdX * nFwd + rightX * nStr;
+        const worldDirZ = fwdZ * nFwd + rightZ * nStr;
+
+        const currentSpeed = player.isSprinting ? player.speed * 1.6 : player.speed;
+
+        player.root.position.x += worldDirX * currentSpeed * delta;
+        player.root.position.z += worldDirZ * currentSpeed * delta;
+
+        const targetRot = Math.atan2(worldDirX, worldDirZ);
+        player.root.rotation.y = THREE.MathUtils.lerp(player.root.rotation.y, targetRot, 0.2);
+
+        GAME.player.energy = Math.max(0, GAME.player.energy - delta * (player.isSprinting ? 5.5 : 0.7));
+      } else {
+        GAME.player.energy = Math.min(100, GAME.player.energy + delta * 0.5);
+      }
+
+      checkProximity();
+      player.update(delta);
+
+      // Camera Tracking
+      const camTargetX = player.root.position.x;
+      const camTargetY = player.root.position.y + 1.8;
+      const camTargetZ = player.root.position.z;
+
+      const camX = camTargetX + Math.sin(cameraAngleX) * Math.cos(cameraAngleY) * cameraDistance;
+      const camY = camTargetY + Math.sin(cameraAngleY) * cameraDistance;
+      const camZ = camTargetZ + Math.cos(cameraAngleX) * Math.cos(cameraAngleY) * cameraDistance;
+
+      camera.position.set(camX, camY, camZ);
+      camera.lookAt(camTargetX, camTargetY, camTargetZ);
+
+      renderer.render(scene, camera);
+    }
+
+    window.addEventListener('resize', () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+
+    if (localStorage.getItem(SAVE_KEY)) {
+      document.getElementById('btn-continue-game').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-continue-game').addEventListener('click', () => {
+      soundEngine.init();
+      loadGameFromDisk();
+      document.getElementById('start-menu-modal').classList.add('hidden');
+      document.getElementById('main-hud').classList.remove('hidden');
+      applyWeather(GAME.time.weathers[GAME.time.weatherIndex]);
+      window.dispatchEvent(new Event('resize'));
+      gameLoop();
+    });
+
+    document.getElementById('btn-new-game').addEventListener('click', () => {
+      soundEngine.init();
+      document.getElementById('start-menu-modal').classList.add('hidden');
+      document.getElementById('main-hud').classList.remove('hidden');
+      applyWeather(GAME.time.weathers[0]);
+      updateHUD();
+      window.dispatchEvent(new Event('resize'));
+      gameLoop();
+      showNotification("স্বাগতম! বাস্তবসম্মত সাউন্ড ও আবহাওয়াসহ গ্রামীণ জীবন শুরু হলো।");
+    });
+
+    window.dispatchEvent(new Event('resize'));
+    renderer.render(scene, camera);
+  </script>
+</body>
+</html>
